@@ -28,10 +28,19 @@ bectl create pre-14.2p5
 go to edit the configuration file (this is only needed for this demonstration purposes).
 ```
 cd /usr/local/etc/pkg/repos
-vim FreeBSD-base.conf
+vi FreeBSD-base.conf
 ```
-explain custom url
 change 14.2p3 to base_release_2
+```
+FreeBSD-base: {
+  url: "pkg+https://pkg.FreeBSD.org/${ABI}/base_release_2",
+  mirror_type: "srv",
+  signature_type: "fingerprints",
+  fingerprints: "/usr/share/keys/pkg",
+  enabled: yes
+}
+```
+
 ```
 pkg update
 pkg upgrade
@@ -54,7 +63,17 @@ bectl create 143p2
 
 change config to base_release_3
 ```
-vim /usr/local/etc/pkg/repos/FreeBSD-base.conf
+vi /usr/local/etc/pkg/repos/FreeBSD-base.conf
+```
+
+```
+FreeBSD-base: {
+  url: "pkg+https://pkg.FreeBSD.org/${ABI}/base_release_3",
+  mirror_type: "srv",
+  signature_type: "fingerprints",
+  fingerprints: "/usr/share/keys/pkg",
+  enabled: yes
+}
 ```
 mount boot env
 ```
@@ -79,38 +98,50 @@ bectl activate 143p2
 # major upgrade
 change config to base_latest
 ```
-vim /usr/local/etc/pkg/repos/FreeBSD-base.conf
+vi /usr/local/etc/pkg/repos/FreeBSD-base.conf
+```
+
+```
+FreeBSD-base: {
+  url: "pkg+https://pkg.FreeBSD.org/${ABI}/base_latest",
+  mirror_type: "srv",
+  signature_type: "fingerprints",
+  fingerprints: "/usr/share/keys/pkg",
+  enabled: yes
+}
 ```
 using bectl:
 ```
-bectl create 15alpha2
-mkdir /mnt/15alpha2
-bectl mount 15alpha2 /mnt/15alpha2
+bectl create 15
+mkdir /mnt/15
+bectl mount 15 /mnt/15
 ```
 lock pkg
 ```
-pkg -r /mnt/15alpha2 lock pkg -y
+pkg -r /mnt/15 lock pkg
 ```
 upgrade
 ```
-env ABI=FreeBSD:15:amd64 pkg -r /mnt/15alpha2 update -r FreeBSD-base
-env ABI=FreeBSD:15:amd64 pkg -r /mnt/15alpha2 upgrade -y -r FreeBSD-base
-bectl activate -t 15alpha2
+env ABI=FreeBSD:15:amd64 pkg -r /mnt/15 update -r FreeBSD-base
+env ABI=FreeBSD:15:amd64 pkg -r /mnt/15 upgrade -y -r FreeBSD-base
 ```
 unlock pkg
 ```
-pkg -r /mnt/15alpha2 unlock pkg
+pkg -r /mnt/15 unlock pkg
 ```
 update other packages
 ```
-env ABI=FreeBSD:15:amd64 pkg -r /mnt/15alpha2 update
-env ABI=FreeBSD:15:amd64 pkg -r /mnt/15alpha2 upgrade
+env ABI=FreeBSD:15:amd64 pkg -c /mnt/15 update
+env ABI=FreeBSD:15:amd64 pkg -c /mnt/15 upgrade
+```
+activate boot environment and restart
+```
+bectl activate -t 15
 shutdown -r now
 ```
 activate be permanently
 ```
-bectl activate 15alpha2
-pkg-static bootstrap -f
+bectl activate 15
 ```
 
 # build your own packages
@@ -131,7 +162,7 @@ After building, the packages will get saved into
 
 use nginx to publish the contents of this folder:
 ```
-vim /usr/local/etc/nginx/nginx.conf
+vi /usr/local/etc/nginx/nginx.conf
 ```
 
 ```nginx
